@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+// Minimal test
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        document.getElementById('splash-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('content-area').innerHTML = '<h1>Test Success</h1>';
+    }, 1000);
+});<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
