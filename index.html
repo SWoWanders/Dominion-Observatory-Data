@@ -16,8 +16,11 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     
-    <!-- Three.js for 3D (loaded async) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <!-- Three.js and GLTF Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Or use Draco for compressed GLB files (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 </head>
 <body>
     <!-- Splash/Loading Screen -->
@@ -35,6 +38,181 @@
         </div>
         <h1 class="splash-title">The Dominion Observatory</h1>
         <p class="splash-subtitle">(Ottawa) Archive</p>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container hidden">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-brand">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 40 40" class="logo-icon">
+                        <path d="M20 5 C10 5, 5 15, 5 20 L5 35 L35 35 L35 20 C35 15, 30 5, 20 5 Z" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              stroke-width="2"/>
+                        <circle cx="20" cy="15" r="2" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>The Dominion Observatory (Ottawa) Archive</h1>
+                    <span class="header-meta">National Historic Site • Est. 1905</span>
+                </div>
+            </div>
+            
+            <!-- SEARCH BUTTON -->
+            <button id="header-search-btn" class="search-trigger" title="Search (Ctrl+K)">
+                <span>🔍</span>
+            </button>
+            
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="main-nav" id="main-nav">
+            <div class="nav-section">
+                <h3>Explore</h3>
+                <ul class="nav-list">
+                    <li><a href="#buildings" data-category="buildings">
+                        <span class="nav-icon">🏛️</span>
+                        <span class="nav-text">Buildings & Structures</span>
+                        <span class="nav-count">15</span>
+                    </a></li>
+                    <li><a href="#equipment" data-category="equipment">
+                        <span class="nav-icon">🔭</span>
+                        <span class="nav-text">Scientific Equipment</span>
+                        <span class="nav-count">12</span>
+                    </a></li>
+                    <li><a href="#personnel" data-category="personnel">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Personnel</span>
+                        <span class="nav-count">12</span>
+                    </a></li>
+                    <li><a href="#programs" data-category="programs">
+                        <span class="nav-icon">🔬</span>
+                        <span class="nav-text">Scientific Programs</span>
+                        <span class="nav-count">10</span>
+                    </a></li>
+                    <li><a href="#discoveries" data-category="discoveries">
+                        <span class="nav-icon">⭐</span>
+                        <span class="nav-text">Discoveries</span>
+                        <span class="nav-count">11</span>
+                    </a></li>
+                    <li><a href="#timeline" data-category="timeline">
+                        <span class="nav-icon">📅</span>
+                        <span class="nav-text">Timeline</span>
+                        <span class="nav-count">25+</span>
+                    </a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section nav-featured">
+                <h3>Featured</h3>
+                <a href="#model" class="nav-featured-link">
+                    <span class="featured-icon">🎨</span>
+                    <span class="featured-text">3D Architectural Model</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content-area" id="content-area">
+            <!-- Dynamic content loads here -->
+        </main>
+
+        <!-- Footer Actions -->
+        <footer class="app-footer">
+            <button class="action-btn primary" id="generate-essay-btn">
+                <span class="btn-icon">📄</span>
+                <span class="btn-text">Generate Essay</span>
+            </button>
+            <button class="action-btn secondary" id="print-btn">
+                <span class="btn-icon">🖨️</span>
+                <span class="btn-text">Print</span>
+            </button>
+            <button class="action-btn secondary" id="update-btn">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">Check Updates</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Essay Generator Modal -->
+    <div id="essay-modal" class="modal hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Generate Essay</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div class="topic-selection">
+                    <h3>Select Topics</h3>
+                    <div class="topic-grid" id="topic-grid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="essay-options">
+                    <h3>Options</h3>
+                    <label class="option-label">
+                        <span>Style</span>
+                        <select id="essay-style">
+                            <option value="comprehensive">Comprehensive History</option>
+                            <option value="architectural">Architectural Focus</option>
+                            <option value="biographical">Biographical</option>
+                        </select>
+                    </label>
+                    <label class="option-label">
+                        <span>Citation Format</span>
+                        <select id="citation-format">
+                            <option value="chicago">Chicago 17th</option>
+                            <option value="apa">APA 7th</option>
+                            <option value="mla">MLA 9th</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn secondary" id="cancel-essay">Cancel</button>
+                <button class="btn primary" id="confirm-essay">Generate</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Essay Output Modal -->
+    <div id="output-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <header class="modal-header">
+                <h2>Generated Essay</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div id="essay-output" class="essay-document"></div>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn secondary" id="copy-essay">Copy to Clipboard</button>
+                <button class="btn secondary" id="print-essay">Print</button>
+                <button class="btn primary" id="save-essay">Save as PDF</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/sources.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/essay-generator.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/three-scene.js"></script>
+    <script src="js/app.js"></script>
+</body>
+    </html>        <p class="splash-subtitle">(Ottawa) Archive</p>
         <div class="loading-bar">
             <div class="loading-progress"></div>
         </div>
