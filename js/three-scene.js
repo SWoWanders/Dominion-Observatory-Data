@@ -1,40 +1,20 @@
-// ============================================
-// THREE.JS 3D SCENE
-// STL Model Display
-// ============================================
-
-class Observatory3DScene {
-    constructor() {
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
-        this.model = null;
-        this.controls = null;
-        this.container = null;
-        this.isRotating = false;
-        this.animationId = null;
-    }
-    
-    init(containerId) {
-        this.container = document.getElementById(containerId);
-        if (!this.container) return;
-        
-        // Clear loading spinner
-        this.container.innerHTML = '';
-        
-        // Scene setup
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x0A0A0F);
-        
-        // Camera
-        const aspect = this.container.clientWidth / this.container.clientHeight;
-        this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-        this.camera.position.set(0, 50, 100);
-        
-        // Renderer
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
-        this.renderer.shadowMap.enabled = true;
+d-o-archive/
+├── index.html              (Three.js + GLTFLoader scripts added)
+├── css/
+│   ├── noir-theme.css
+│   ├── layout.css
+│   └── components.css
+├── js/
+│   ├── data.js
+│   ├── sources.js
+│   ├── navigation.js
+│   ├── essay-generator.js
+│   ├── search.js
+│   ├── three-scene.js      ← UPDATED for GLB
+│   └── app.js
+└── assets/
+    └── models/
+        └── observatory.glb   ← YOUR GLB FILE HERE        this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.container.appendChild(this.renderer.domElement);
         
