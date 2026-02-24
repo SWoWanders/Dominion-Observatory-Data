@@ -1,40 +1,20 @@
-// Minimal test
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        document.getElementById('splash-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('content-area').innerHTML = '<h1>Test Success</h1>';
-    }, 1000);
-});<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="The Dominion Observatory (Ottawa) Archive - Comprehensive historical database of Canada's premier astronomical institution, 1905-2025">
-    <title>The Dominion Observatory (Ottawa) Archive</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="css/noir-theme.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
-    
-    <!-- Three.js and GLTF Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <!-- Or use Draco for compressed GLB files (optional) -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
-</head>
-<body>
-    <!-- Splash/Loading Screen -->
-    <div id="splash-screen" class="splash">
-        <div class="starfield"></div>
-        <div class="dome-silhouette">
-            <svg viewBox="0 0 100 100" class="dome-icon">
+d-o-archive/
+├── index.html              ← UPDATED (this file)
+├── css/
+│   ├── noir-theme.css      ← NO CHANGE
+│   ├── layout.css          ← NO CHANGE
+│   └── components.css      ← ADD skip-button styles
+├── js/
+│   ├── data.js             ← NO CHANGE
+│   ├── sources.js          ← NO CHANGE
+│   ├── navigation.js       ← NO CHANGE
+│   ├── essay-generator.js  ← NO CHANGE
+│   ├── search.js           ← NO CHANGE
+│   ├── three-scene.js      ← GLB version from earlier
+│   └── app.js              ← Debug version from earlier
+└── assets/
+    └── models/
+        └── observatory.glb  ← YOUR GLB FILE            <svg viewBox="0 0 100 100" class="dome-icon">
                 <path d="M50 10 C30 10, 15 30, 15 50 L15 85 L85 85 L85 50 C85 30, 70 10, 50 10 Z" 
                       fill="none" 
                       stroke="var(--brass)" 
