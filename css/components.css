@@ -1,0 +1,217 @@
+/* ============================================
+   SEARCH COMPONENTS
+   ============================================ */
+
+.search-trigger {
+    background: transparent;
+    border: 1px solid var(--brass-dark);
+    color: var(--brass);
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    margin-left: auto;
+    margin-right: 1rem;
+    transition: all var(--transition-fast);
+}
+
+.search-trigger:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: var(--brass);
+}
+
+/* Search Modal Specifics */
+#search-modal .modal-content {
+    max-width: 700px;
+}
+
+.search-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--obsidian);
+    border: 1px solid var(--brass-dark);
+    border-radius: 4px;
+    padding: var(--space-sm) var(--space-md);
+    margin-right: var(--space-md);
+}
+
+.search-icon {
+    font-size: 1.25rem;
+    color: var(--brass);
+}
+
+#search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--parchment);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    outline: none;
+}
+
+#search-input::placeholder {
+    color: var(--parchment-dark);
+}
+
+.search-clear {
+    background: none;
+    border: none;
+    color: var(--parchment-dark);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.search-clear:hover {
+    color: var(--brass);
+}
+
+.search-filters {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--obsidian-lighter);
+    color: var(--parchment-dim);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: var(--brass);
+    color: var(--brass);
+}
+
+.search-results {
+    min-height: 300px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.search-empty {
+    text-align: center;
+    padding: var(--space-xxl);
+    color: var(--parchment-dim);
+}
+
+.search-hints {
+    margin-top: var(--space-md);
+    font-size: 0.875rem;
+    color: var(--parchment-dark);
+}
+
+.search-hints code {
+    background: var(--obsidian);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--brass);
+}
+
+.search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.search-result {
+    background: var(--obsidian);
+    border: 1px solid var(--obsidian-lighter);
+    border-radius: 4px;
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.search-result:hover {
+    border-color: var(--brass);
+    background: var(--obsidian-light);
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.result-icon {
+    font-size: 1.25rem;
+}
+
+.result-type {
+    font-size: 0.75rem;
+    color: var(--patina);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.result-relevance {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--obsidian);
+    background: var(--brass);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.result-title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    color: var(--parchment);
+    margin-bottom: var(--space-sm);
+}
+
+.result-title mark {
+    background: rgba(212, 175, 55, 0.3);
+    color: var(--parchment);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.result-excerpt {
+    font-size: 0.9rem;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+}
+
+.result-excerpt mark {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--parchment);
+    padding: 0 2px;
+}
+
+.result-citations {
+    margin-top: var(--space-sm);
+}
+
+.search-stats {
+    font-size: 0.875rem;
+    color: var(--parchment-dark);
+}
+
+/* Highlight animation */
+@keyframes highlight-pulse {
+    0% { background-color: rgba(212, 175, 55, 0.3); }
+    100% { background-color: transparent; }
+}
+
+mark {
+    animation: highlight-pulse 2s ease-out;
+}
+
+.hidden {
+    display: none !important;
+  }
