@@ -1,5 +1,301 @@
 /**
  * Dominion Observatory Archive - Main Application
+ * Bulletproof GitHub Pages Version
+ */
+
+// Wrap everything in IIFE to avoid global scope pollution
+(function() {
+    'use strict';
+
+    console.log('[APP] Script loaded');
+
+    // ==========================================
+    // UTILITY FUNCTIONS
+    // ==========================================
+    function log() {
+        var args = Array.prototype.slice.call(arguments);
+        console.log.apply(console, ['[APP]'].concat(args));
+    }
+
+    function error() {
+        var args = Array.prototype.slice.call(arguments);
+        console.error.apply(console, ['[APP]'].concat(args));
+    }
+
+    // ==========================================
+    // APP INITIALIZATION
+    // ==========================================
+    var App = {
+        initialized: false,
+
+        init: function() {
+            if (this.initialized) {
+                log('Already initialized');
+                return;
+            }
+            
+            log('Initializing application');
+            this.initialized = true;
+
+            // Initialize navigation
+            this.initNavigation();
+            
+            // Initialize search
+            this.initSearch();
+            
+            // Initialize essay generator
+            this.initEssayGenerator();
+            
+            // Initialize footer actions
+            this.initFooterActions();
+
+            log('Application initialized');
+        },
+
+        // ==========================================
+        // NAVIGATION
+        // ==========================================
+        initNavigation: function() {
+            log('Initializing navigation');
+
+            var navLinks = document.querySelectorAll('.nav-list a[data-category]');
+            
+            for (var i = 0; i < navLinks.length; i++) {
+                navLinks[i].addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var category = this.getAttribute('data-category');
+                    App.loadSection(category);
+                });
+            }
+
+            // Mobile menu toggle
+            var menuToggle = document.querySelector('.menu-toggle');
+            var mainNav = document.getElementById('main-nav');
+            
+            if (menuToggle && mainNav) {
+                menuToggle.addEventListener('click', function() {
+                    mainNav.classList.toggle('open');
+                    menuToggle.classList.toggle('active');
+                });
+            }
+
+            // Handle hash on load
+            if (window.location.hash) {
+                var section = window.location.hash.replace('#', '');
+                setTimeout(function() {
+                    App.loadSection(section);
+                }, 100);
+            }
+        },
+
+        loadSection: function(category) {
+            log('Loading section:', category);
+            
+            var contentArea = document.getElementById('content-area');
+            if (!contentArea) return;
+
+            // Update active nav
+            var navLinks = document.querySelectorAll('.nav-list a');
+            for (var i = 0; i < navLinks.length; i++) {
+                navLinks[i].classList.remove('active');
+                if (navLinks[i].getAttribute('data-category') === category) {
+                    navLinks[i].classList.add('active');
+                }
+            }
+
+            // Generate content
+            var content = this.generateContent(category);
+            contentArea.innerHTML = content;
+        },
+
+        generateContent: function(category) {
+            // Check for data
+            if (typeof ObservatoryData === 'undefined' || !ObservatoryData[category]) {
+                return '<section class="content-section"><h2>Section: ' + category + '</h2><p>Content loading...</p></section>';
+            }
+
+            var data = ObservatoryData[category];
+            var html = '<section id="' + category + '" class="content-section"><h2>' + this.capitalize(category) + '</h2><div class="content-grid">';
+
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                html += '<article class="content-card">' +
+                    '<h3>' + (item.title || 'Untitled') + '</h3>' +
+                    '<p>' + (item.description || '') + '</p>' +
+                    '</article>';
+            }
+
+            html += '</div></section>';
+            return html;
+        },
+
+        capitalize: function(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        },
+
+        // ==========================================
+        // SEARCH
+        // ==========================================
+        initSearch: function() {
+            var searchBtn = document.getElementById('header-search-btn');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    log('Search clicked');
+                    if (window.Search && window.Search.open) {
+                        window.Search.open();
+                    } else {
+                        alert('Search functionality coming soon');
+                    }
+                });
+            }
+
+            // Keyboard shortcut
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (searchBtn) searchBtn.click();
+                }
+            });
+        },
+
+        // ==========================================
+        // ESSAY GENERATOR
+        // ==========================================
+        initEssayGenerator: function() {
+            var generateBtn = document.getElementById('generate-essay-btn');
+            var cancelBtn = document.getElementById('cancel-essay');
+            var confirmBtn = document.getElementById('confirm-essay');
+            var modal = document.getElementById('essay-modal');
+
+            if (generateBtn) {
+                generateBtn.addEventListener('click', function() {
+                    if (modal) modal.classList.remove('hidden');
+                    App.populateTopics();
+                });
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    if (modal) modal.classList.add('hidden');
+                });
+            }
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    App.generateEssay();
+                });
+            }
+
+            // Close buttons
+            var closeBtns = document.querySelectorAll('.modal-close');
+            for (var i = 0; i < closeBtns.length; i++) {
+                closeBtns[i].addEventListener('click', function() {
+                    var m = this.closest('.modal');
+                    if (m) m.classList.add('hidden');
+                });
+            }
+        },
+
+        populateTopics: function() {
+            var grid = document.getElementById('topic-grid');
+            if (!grid) return;
+            
+            if (typeof ObservatoryData === 'undefined') {
+                grid.innerHTML = '<p>No topics available</p>';
+                return;
+            }
+
+            var topics = [];
+            var keys = Object.keys(ObservatoryData);
+            for (var i = 0; i < keys.length; i++) {
+                var category = keys[i];
+                var items = ObservatoryData[category];
+                if (Array.isArray(items)) {
+                    for (var j = 0; j < items.length; j++) {
+                        topics.push('<label><input type="checkbox" value="' + (items[j].id || j) + '"> ' + (items[j].title || 'Item') + '</label>');
+                    }
+                }
+            }
+
+            grid.innerHTML = topics.join('<br>');
+        },
+
+        generateEssay: function() {
+            log('Generating essay');
+            var modal = document.getElementById('essay-modal');
+            var outputModal = document.getElementById('output-modal');
+            var outputDiv = document.getElementById('essay-output');
+            
+            if (modal) modal.classList.add('hidden');
+            if (outputModal) outputModal.classList.remove('hidden');
+            if (outputDiv) {
+                outputDiv.innerHTML = '<h1>Sample Essay</h1><p>This is a generated essay about the Dominion Observatory.</p>';
+            }
+        },
+
+        // ==========================================
+        // FOOTER ACTIONS
+        // ==========================================
+        initFooterActions: function() {
+            var printBtn = document.getElementById('print-btn');
+            var updateBtn = document.getElementById('update-btn');
+
+            if (printBtn) {
+                printBtn.addEventListener('click', function() {
+                    window.print();
+                });
+            }
+
+            if (updateBtn) {
+                updateBtn.addEventListener('click', function() {
+                    var original = updateBtn.innerHTML;
+                    updateBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Checking...</span>';
+                    setTimeout(function() {
+                        updateBtn.innerHTML = '<span class="btn-icon">✓</span><span class="btn-text">Up to date</span>';
+                        setTimeout(function() {
+                            updateBtn.innerHTML = original;
+                        }, 2000);
+                    }, 1500);
+                });
+            }
+        }
+    };
+
+    // ==========================================
+    // INITIALIZATION SEQUENCE
+    // ==========================================
+
+    // Listen for appVisible event from splash screen
+    window.addEventListener('appVisible', function() {
+        log('App visible event received');
+        setTimeout(function() {
+            App.init();
+        }, 100);
+    });
+
+    // Also try to initialize if we're already past splash (direct URL access)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        var splash = document.getElementById('splash-screen');
+        if (!splash || splash.classList.contains('hidden')) {
+            log('No splash detected, initializing immediately');
+            App.init();
+        }
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            var splash = document.getElementById('splash-screen');
+            if (!splash || splash.classList.contains('hidden')) {
+                App.init();
+            }
+        });
+    }
+
+    // Expose to global for debugging
+    window.DominionApp = App;
+
+    log('Script execution complete');
+
+})();/**
+ * Dominion Observatory Archive - Main Application
  * GitHub Pages Compatible Version
  */
 
