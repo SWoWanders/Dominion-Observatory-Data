@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="The Dominion Observatory (Ottawa) Archive - Comprehensive historical database of Canada's premier astronomical institution, 1905-2025">
+    <title>The Dominion Observatory (Ottawa) Archive</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js from CDN for GLB support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Load external data.js from jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/gh/SWoWanders/Dominion-Observatory-Data@main/js/data.js"></script>
+    
+    <style>
+        :root {
+            --brass: #b5a642;
+            --brass-dark: #8a7a32;
+            --patina: #4a7c59;
+            --patina-light: #5a8c69;
+            --obsidian: #1a1a1a;
+            --obsidian-light: #2a2a2a;
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Source Sans Pro', sans-serif;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html, body {
+            font-family: var(--font-body);
+            background: var(--obsidian);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        #app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-header {
+            background: linear-gradient(180deg, var(--obsidian-light) 0%, var(--obsidian) 100%);
+            border-bottom: 2px solid var(--brass-dark);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            gap: 0.5rem;
+        }
+        
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .logo-mark {
+            color: var(--brass);
+            flex-shrink: 0;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            display: block;
+        }
+        
+        .header-text {
+            min-width: 0;
+            overflow: hidden;
+        }
+        
+        .header-text h1 {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--brass);
+            margin: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .header-meta {
+            font-size: 0.65rem;
+            color: var(--patina);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        
+        .search-trigger, .menu-toggle {
+            background: transparent;
+            border: 1px solid var(--brass-dark);
+            color: var(--brass);
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            min-height: 40px;
+        }
+        
+        .search-trigger:hover, .menu-toggle:hover {
+            background: var(--brass);
+            color: var(--obsidian);
+        }
+        
+        .menu-toggle {
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: currentColor;
+            transition: 0.3s;
+        }
+        
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .main-nav {
+            background: var(--obsidian-light);
+            border-right: 2px solid var(--brass-dark);
+            width: 280px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            padding: 1rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 200;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .main-nav.open {
+            transform: translateX(0);
+        }
+        
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--brass-dark);
+        }
+        
+        .nav-header h2 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            font-size: 1.1rem;
+        }
+        
+        .nav-close {
+            background: none;
+            border: none;
+            color: var(--brass);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+        
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-section h3 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--brass-dark);
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-list li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .nav-list a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            touch-action: manipulation;
+        }
+        
+        .nav-list a:hover, .nav-list a:active {
+            background: rgba(181, 166, 66, 0.1);
+            color: var(--brass);
+        }
+        
+        .nav-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .nav-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nav-count {
+            background: var(--brass-dark);
+            color: var(--obsidian);
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .nav-featured-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(181, 166, 66, 0.1) 0%, rgba(74, 124, 89, 0.1) 100%);
+            border: 1px solid var(--brass-dark);
+            border-radius: 4px;
+            color: var(--brass);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-featured-link:hover {
+            background: linear-gradient(135deg, rgba(181, 166, 66, 0.2) 0%, rgba(74, 124, 89, 0.2) 100%);
+            border-color: var(--brass);
+        }
+        
+        .featured-icon {
+            font-size: 1.25rem;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 1rem;
+            background: var(--obsidian);
+            min-height: calc(100vh - 140px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .mobile-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--brass);
+        }
+        
+        .mobile-category-header h2 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            font-size: 1.25rem;
+            text-transform: capitalize;
+        }
+        
+        .category-toggle {
+            background: var(--brass-dark);
+            border: none;
+            color: var(--obsidian);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--obsidian-light);
+            border: 1px solid var(--brass-dark);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .card:hover, .card:active {
+            border-color: var(--brass);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(181, 166, 66, 0.1);
+        }
+        
+        .card h3 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            line-height: 1.3;
+        }
+        
+        .card-meta {
+            color: var(--patina);
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .card p {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .card-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--brass-dark);
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        .card-details ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .card-details li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .card-citations {
+            margin-top: 0.75rem;
+            font-size: 0.7rem;
+            color: #666;
+            font-style: italic;
+            border-top: 1px solid var(--obsidian);
+            padding-top: 0.5rem;
+        }
+        
+        /* Timeline Styles */
+        .timeline-container {
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--brass-dark);
+            transform: translateX(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            flex-direction: row-reverse;
+        }
+        
+        .timeline-content {
+            width: 45%;
+            background: var(--obsidian-light);
+            border: 1px solid var(--brass-dark);
+            border-radius: 8px;
+            padding: 1.25rem;
+            position: relative;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--brass);
+            border-radius: 50%;
+            border: 3px solid var(--obsidian);
+        }
+        
+        .timeline-year {
+            font-family: var(--font-display);
+            color: var(--brass);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-desc {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .timeline-citations {
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-line {
+                left: 20px;
+            }
+            .timeline-item {
+                flex-direction: row !important;
+                padding-left: 50px;
+            }
+            .timeline-content {
+                width: 100%;
+            }
+            .timeline-dot {
+                left: 20px;
+            }
+        }
+        
+        .app-footer {
+            background: var(--obsidian-light);
+            border-top: 1px solid var(--brass-dark);
+            padding: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: sticky;
+            bottom: 0;
+            z-index: 50;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+            max-width: 200px;
+            touch-action: manipulation;
+        }
+        
+        .action-btn.primary {
+            background: var(--brass);
+            color: var(--obsidian);
+            font-weight: 600;
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--brass-dark);
+        }
+        
+        .action-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--brass);
+            color: var(--brass);
+        }
+        
+        .action-btn.secondary:hover {
+            background: var(--brass);
+            color: var(--obsidian);
+        }
+        
+        /* 3D Viewer Styles */
+        .viewer-3d-container {
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+            background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 100%);
+            border-radius: 8px;
+            border: 2px solid var(--brass-dark);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .viewer-3d-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .viewer-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--brass-dark);
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
+        }
+        
+        .viewer-btn {
+            background: transparent;
+            border: 1px solid var(--brass);
+            color: var(--brass);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .viewer-btn:hover {
+            background: var(--brass);
+            color: var(--obsidian);
+        }
+        
+        .viewer-btn.active {
+            background: var(--brass);
+            color: var(--obsidian);
+        }
+        
+        .viewer-info {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--brass-dark);
+            max-width: 250px;
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+        
+        .viewer-info h3 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .viewer-info p {
+            color: #ccc;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .viewer-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--brass);
+            z-index: 20;
+        }
+        
+        .viewer-loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 1rem auto;
+            border: 3px solid var(--brass-dark);
+            border-top-color: var(--brass);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .viewer-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ff6666;
+            padding: 2rem;
+            max-width: 80%;
+        }
+        
+        .viewer-error h3 {
+            color: #ff6666;
+            margin-bottom: 1rem;
+        }
+        
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal.hidden {
+            display: none !important;
+        }
+        
+        .modal-content {
+            background: var(--obsidian-light);
+            border: 1px solid var(--brass-dark);
+            border-radius: 12px 12px 0 0;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal:not(.hidden) .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-large {
+            max-height: 95vh;
+        }
+        
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--brass-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--obsidian-light);
+            z-index: 10;
+        }
+        
+        .modal-header h2 {
+            font-family: var(--font-display);
+            color: var(--brass);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--brass);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-body {
+            padding: 1.25rem;
+        }
+        
+        .modal-footer {
+            padding: 1.25rem;
+            border-top: 1px solid var(--brass-dark);
+            display: flex;
+            gap: 0.75rem;
+            flex-direction: column;
+        }
+        
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            touch-action: manipulation;
+        }
+        
+        .btn.primary {
+            background: var(--brass);
+            color: var(--obsidian);
+            font-weight: 600;
+        }
+        
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid var(--brass);
+            color: var(--brass);
+        }
+        
+        .topic-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem;
+            background: rgba(181, 166, 66, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .topic-item:hover, .topic-item.selected {
+            border-color: var(--brass);
+            background: rgba(181, 166, 66, 0.2);
+        }
+        
+        .topic-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--brass);
+            flex-shrink: 0;
+        }
+        
+        .option-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--obsidian);
+        }
+        
+        .option-label span {
+            font-weight: 600;
+            color: var(--brass);
+        }
+        
+        .option-label select {
+            background: var(--obsidian);
+            border: 1px solid var(--brass-dark);
+            color: #fff;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .essay-document {
+            background: #fff;
+            color: #000;
+            padding: 1.5rem;
+            border-radius: 4px;
+            min-height: 300px;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--brass);
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff6666;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+        
+        .scroll-top {
+            position: fixed;
+            bottom: 80px;
+            right: 1rem;
+            background: var(--brass);
+            color: var(--obsidian);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 40;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        @media (min-width: 768px) {
+            .main-header {
+                padding: 1rem 2rem;
+            }
+            
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .header-text h1 {
+                font-size: 1.25rem;
+            }
+            
+            .header-meta {
+                font-size: 0.75rem;
+            }
+            
+            .content-area {
+                padding: 2rem;
+            }
+            
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .viewer-3d-container {
+                height: 70vh;
+                min-height: 500px;
+            }
+            
+            .modal {
+                align-items: center;
+                padding: 2rem;
+            }
+            
+            .modal-content {
+                border-radius: 8px;
+                max-width: 900px;
+                transform: translateY(20px);
+            }
+            
+            .modal:not(.hidden) .modal-content {
+                transform: translateY(0);
+            }
+            
+            .modal-large {
+                max-width: 900px;
+            }
+            
+            .modal-footer {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+            
+            .btn {
+                width: auto;
+            }
+            
+            .topic-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .content-wrapper {
+                flex-direction: row;
+            }
+            
+            .main-nav {
+                position: relative;
+                transform: translateX(0);
+                width: 300px;
+                border-right: 1px solid var(--brass-dark);
+                border-bottom: none;
+            }
+            
+            .nav-header, .nav-overlay, .menu-toggle {
+                display: none;
+            }
+            
+            .content-area {
+                flex: 1;
+                margin-left: 0;
+            }
+            
+            .mobile-category-header {
+                display: none;
+            }
+        }
+        
+        @media print {
+            .main-header, .main-nav, .app-footer, .modal {
+                display: none !important;
+            }
+            
+            .content-area {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-brand">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 40 40" class="logo-icon">
+                        <path d="M20 5 C10 5, 5 15, 5 20 L5 35 L35 35 L35 20 C35 15, 30 5, 20 5 Z" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              stroke-width="2"/>
+                        <circle cx="20" cy="15" r="2" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>The Dominion Observatory (Ottawa) Archive</h1>
+                    <span class="header-meta">National Historic Site • Est. 1905</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="header-search-btn" class="search-trigger" title="Search (Ctrl+K)">
+                    <span>🔍</span>
+                </button>
+                
+                <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Overlay for Mobile -->
+        <div class="nav-overlay" id="nav-overlay"></div>
+
+        <div class="content-wrapper">
+            <!-- Navigation Sidebar -->
+            <nav class="main-nav" id="main-nav">
+                <div class="nav-header">
+                    <h2>Menu</h2>
+                    <button class="nav-close" id="nav-close">&times;</button>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Explore</h3>
+                    <ul class="nav-list">
+                        <li><a href="#buildings" data-category="buildings">
+                            <span class="nav-icon">🏛️</span>
+                            <span class="nav-text">Buildings & Structures</span>
+                            <span class="nav-count" id="count-buildings">--</span>
+                        </a></li>
+                        <li><a href="#equipment" data-category="equipment">
+                            <span class="nav-icon">🔭</span>
+                            <span class="nav-text">Scientific Equipment</span>
+                            <span class="nav-count" id="count-equipment">--</span>
+                        </a></li>
+                        <li><a href="#personnel" data-category="personnel">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-text">Personnel</span>
+                            <span class="nav-count" id="count-personnel">--</span>
+                        </a></li>
+                        <li><a href="#programs" data-category="programs">
+                            <span class="nav-icon">🔬</span>
+                            <span class="nav-text">Scientific Programs</span>
+                            <span class="nav-count" id="count-programs">--</span>
+                        </a></li>
+                        <li><a href="#discoveries" data-category="discoveries">
+                            <span class="nav-icon">⭐</span>
+                            <span class="nav-text">Discoveries</span>
+                            <span class="nav-count" id="count-discoveries">--</span>
+                        </a></li>
+                        <li><a href="#timeline" data-category="timeline">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timeline</span>
+                            <span class="nav-count" id="count-timeline">--</span>
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section nav-featured">
+                    <h3>Featured</h3>
+                    <div class="nav-featured-link" id="3d-model-link">
+                        <span class="featured-icon">🎨</span>
+                        <span class="featured-text">3D Architectural Model</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="content-area" id="content-area">
+                <div class="mobile-category-header">
+                    <h2 id="current-category">Loading...</h2>
+                    <button class="category-toggle" id="category-toggle">Change Category</button>
+                </div>
+                <div id="cards-container" class="cards-grid">
+                    <div class="loading">Loading archive data...</div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer Actions -->
+        <footer class="app-footer">
+            <button class="action-btn primary" id="generate-essay-btn">
+                <span class="btn-icon">📄</span>
+                <span class="btn-text">Generate Essay</span>
+            </button>
+            <button class="action-btn secondary" id="print-btn">
+                <span class="btn-icon">🖨️</span>
+                <span class="btn-text">Print</span>
+            </button>
+        </footer>
+
+        <!-- Scroll to Top Button -->
+        <button class="scroll-top" id="scroll-top" title="Scroll to top">↑</button>
+    </div>
+
+    <!-- 3D Model Viewer Modal -->
+    <div id="model-3d-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <header class="modal-header">
+                <h2>3D Architectural Model</h2>
+                <button class="modal-close" id="close-3d-modal">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div class="viewer-3d-container" id="viewer-3d-container">
+                    <div class="viewer-loading" id="viewer-loading">Loading 3D Model...</div>
+                    <div class="viewer-error hidden" id="viewer-error">
+                        <h3>Unable to Load Model</h3>
+                        <p id="error-message">The 3D model could not be loaded.</p>
+                        <button class="viewer-btn" onclick="retryLoadModel()" style="margin-top: 1rem;">Retry</button>
+                    </div>
+                    <div class="viewer-info">
+                        <h3>Dominion Observatory</h3>
+                        <p>Interactive 3D model. Drag to rotate, scroll to zoom, right-click to pan.</p>
+                    </div>
+                    <div class="viewer-controls">
+                        <button class="viewer-btn" id="reset-view">Reset View</button>
+                        <button class="viewer-btn" id="toggle-wireframe">Wireframe</button>
+                        <button class="viewer-btn" id="toggle-rotate">Auto Rotate</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-family: var(--font-display); color: var(--brass); margin-bottom: 0.5rem;">Model Information</h3>
+                    <p style="color: #ccc; line-height: 1.6; margin-bottom: 0.5rem;"><strong>File:</strong> observatory.glb</p>
+                    <p style="color: #ccc; line-height: 1.6; margin-bottom: 0.5rem;"><strong>Source:</strong> SWoWanders/Dominion-Observatory-Data</p>
+                    <p style="color: #ccc; line-height: 1.6;">This 3D model represents the Dominion Observatory main building and dome as constructed in 1905.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Essay Generator Modal -->
+    <div id="essay-modal" class="modal hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Generate Essay</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div class="topic-selection">
+                    <h3>Select Topics</h3>
+                    <div class="topic-grid" id="topic-grid">
+                        <div class="loading">Loading topics...</div>
+                    </div>
+                </div>
+                <div class="essay-options">
+                    <h3>Options</h3>
+                    <label class="option-label">
+                        <span>Essay Style</span>
+                        <select id="essay-style">
+                            <option value="comprehensive">Comprehensive History</option>
+                            <option value="architectural">Architectural Focus</option>
+                            <option value="biographical">Biographical</option>
+                            <option value="scientific">Scientific Analysis</option>
+                        </select>
+                    </label>
+                    <label class="option-label">
+                        <span>Citation Format</span>
+                        <select id="citation-format">
+                            <option value="chicago">Chicago 17th</option>
+                            <option value="apa">APA 7th</option>
+                            <option value="mla">MLA 9th</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn secondary" id="cancel-essay">Cancel</button>
+                <button class="btn primary" id="confirm-essay">Generate Essay</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Essay Output Modal -->
+    <div id="output-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <header class="modal-header">
+                <h2>Generated Essay</h2>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div id="essay-output" class="essay-document">
+                    <p style="color: #666; text-align: center; font-style: italic;">Your generated essay will appear here...</p>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn secondary" id="copy-essay">Copy to Clipboard</button>
+                <button class="btn primary" id="save-essay">Save as PDF</button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - Update these URLs as needed
+        // ============================================
+        
+        // Primary: GitHub Pages (most reliable for GLB files)
+        // To enable: Go to your GitHub repo → Settings → Pages → Select "main" branch → Save
+        // Wait 2-3 minutes for deployment, then verify: https://swowanders.github.io/Dominion-Observatory-Data
+        const GITHUB_PAGES_URL = 'https://swowanders.github.io/Dominion-Observatory-Data';
+        
+        // Fallback: Netlify (uncomment and update if GitHub Pages fails)
+        // const NETLIFY_URL = 'https://your-site-name.netlify.app';
+        
+        // Alternative: Your own custom hosting
+        // const CUSTOM_URL = 'https://your-domain.com/path';
+        
+        // ============================================
+        
+        // Application State
+        let archiveData = {};
+        let currentCategory = 'buildings';
+        let selectedTopics = [];
+        let threeScene = null;
+        let threeRenderer = null;
+        let threeCamera = null;
+        let threeControls = null;
+        let threeModel = null;
+        let isAutoRotating = false;
+        let isWireframe = false;
+
+        // Initialize Application
+        function init() {
+            // Check if data loaded from external script
+            if (typeof ObservatoryData !== 'undefined' && ObservatoryData) {
+                console.log('External data loaded successfully');
+                // Map the external data structure to our internal structure
+                archiveData = {
+                    buildings: ObservatoryData.buildings || [],
+                    equipment: ObservatoryData.equipment || [],
+                    personnel: ObservatoryData.personnel || [],
+                    programs: ObservatoryData.programs || [],
+                    discoveries: ObservatoryData.discoveries || [],
+                    timeline: ObservatoryData.timeline || []
+                };
+                
+                updateNavCounts();
+                initNavigation();
+                initMenu();
+                initModals();
+                init3DViewer();
+                initScrollTop();
+                initSearch();
+                loadCategory('buildings');
+            } else {
+                console.error('Failed to load external data');
+                document.getElementById('cards-container').innerHTML = 
+                    '<div class="error-message">Unable to load archive data. Please check your internet connection and refresh the page.</div>';
+            }
+        }
+
+        function updateNavCounts() {
+            const categories = ['buildings', 'equipment', 'personnel', 'programs', 'discoveries', 'timeline'];
+            categories.forEach(cat => {
+                const countEl = document.getElementById(`count-${cat}`);
+                if (countEl && archiveData[cat]) {
+                    countEl.textContent = archiveData[cat].length;
+                }
+            });
+        }
+
+        // Navigation Functions
+        function initNavigation() {
+            const navLinks = document.querySelectorAll('.nav-list a');
+            const categoryToggle = document.getElementById('category-toggle');
+            const model3dLink = document.getElementById('3d-model-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const category = link.getAttribute('data-category');
+                    loadCategory(category);
+                    closeMobileMenu();
+                });
+            });
+
+            if (categoryToggle) {
+                categoryToggle.addEventListener('click', openMobileMenu);
+            }
+
+            if (model3dLink) {
+                model3dLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    open3DViewer();
+                    closeMobileMenu();
+                });
+            }
+        }
+
+        function loadCategory(category) {
+            currentCategory = category;
+            const container = document.getElementById('cards-container');
+            const currentCategoryEl = document.getElementById('current-category');
+            
+            if (currentCategoryEl) {
+                currentCategoryEl.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            }
+
+            if (category === 'timeline') {
+                renderTimeline(container);
+                return;
+            }
+
+            const data = archiveData[category] || [];
+            
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">No data available for this category.</div>';
+                return;
+            }
+
+            container.innerHTML = data.map(item => createCard(item, category)).join('');
+            
+            document.getElementById('content-area').scrollTop = 0;
+            window.scrollTo(0, 0);
+        }
+
+        function formatCitations(citations) {
+            if (!citations || !Array.isArray(citations) || citations.length === 0) return '';
+            return `<div class="card-citations">Sources: ${citations.join(', ')}</div>`;
+        }
+
+        function createCard(item, category) {
+            let meta = '';
+            let title = '';
+            let description = '';
+            let detailsHtml = '';
+            let citationsHtml = '';
+
+            // Handle different data structures based on category
+            switch(category) {
+                case 'buildings':
+                    title = item.name || item.title || 'Untitled';
+                    if (item.constructed) {
+                        if (typeof item.constructed === 'object') {
+                            meta += `<span>Built: ${item.constructed.start || item.constructed.completed || 'Unknown'}</span>`;
+                        } else {
+                            meta += `<span>Built: ${item.constructed}</span>`;
+                        }
+                    }
+                    if (item.architect) meta += `<span>Architect: ${item.architect}</span>`;
+                    if (item.style) meta += `<span>Style: ${item.style}</span>`;
+                    description = item.description || item.purpose || '';
+                    
+                    // Add details for buildings
+                    if (item.materials || item.features || item.dimensions) {
+                        detailsHtml = '<div class="card-details">';
+                        if (item.materials && item.materials.exterior) {
+                            detailsHtml += `<p><strong>Materials:</strong> ${item.materials.exterior.primary || ''}</p>`;
+                        }
+                        if (item.features && item.features.length > 0) {
+                            detailsHtml += `<p><strong>Features:</strong></p><ul>${item.features.slice(0, 3).map(f => `<li>${f}</li>`).join('')}</ul>`;
+                        }
+                        detailsHtml += '</div>';
+                    }
+                    citationsHtml = formatCitations(item.citations);
+                    break;
+
+                case 'equipment':
+                    title = item.name || item.title || 'Untitled';
+                    if (item.acquisition && item.acquisition.ordered) meta += `<span>Ordered: ${item.acquisition.ordered}</span>`;
+                    if (item.specifications && item.specifications.aperture) {
+                        meta += `<span>Aperture: ${item.specifications.aperture.inches}"</span>`;
+                    }
+                    if (item.manufacturer) meta += `<span>Maker: ${item.manufacturer}</span>`;
+                    description = item.description || item.purpose || item.distinction || '';
+                    
+                    if (item.specifications || item.accessories) {
+                        detailsHtml = '<div class="card-details">';
+                        if (item.specifications && item.specifications.focalLength) {
+                            detailsHtml += `<p><strong>Focal Length:</strong> ${item.specifications.focalLength.meters}m</p>`;
+                        }
+                        detailsHtml += '</div>';
+                    }
+                    citationsHtml = formatCitations(item.citations);
+                    break;
+
+                case 'personnel':
+                    title = item.name || 'Unknown';
+                    if (item.birth && item.birth.year) meta += `<span>Born: ${item.birth.year}</span>`;
+                    if (item.death && item.death.year) meta += `<span>Died: ${item.death.year}</span>`;
+                    if (item.career && item.career.length > 0) {
+                        const latest = item.career[item.career.length - 1];
+                        meta += `<span>Role: ${latest.role || latest.position || 'Unknown'}</span>`;
+                    }
+                    description = item.character || (item.contributions ? item.contributions.join('; ') : '') || '';
+                    
+                    if (item.education || item.honors) {
+                        detailsHtml = '<div class="card-details">';
+                        if (item.education) {
+                            if (Array.isArray(item.education)) {
+                                detailsHtml += `<p><strong>Education:</strong> ${item.education.map(e => e.institution).join(', ')}</p>`;
+                            } else {
+                                detailsHtml += `<p><strong>Education:</strong> ${item.education.institution || ''}</p>`;
+                            }
+                        }
+                        detailsHtml += '</div>';
+                    }
+                    citationsHtml = formatCitations(item.citations);
+                    break;
+
+                case 'programs':
+                    title = item.name || item.title || 'Untitled';
+                    if (item.period) meta += `<span>Period: ${item.period}</span>`;
+                    if (item.lead) meta += `<span>Lead: ${item.lead}</span>`;
+                    description = item.description || '';
+                    
+                    if (item.activities || item.equipment) {
+                        detailsHtml = '<div class="card-details">';
+                        if (item.activities) {
+                            detailsHtml += `<p><strong>Activities:</strong> ${item.activities.join(', ')}</p>`;
+                        }
+                        detailsHtml += '</div>';
+                    }
+                    citationsHtml = formatCitations(item.citations);
+                    break;
+
+                case 'discoveries':
+                    title = item.title || 'Untitled';
+                    if (item.year) meta += `<span>Year: ${item.year}</span>`;
+                    if (item.by) meta += `<span>By: ${item.by}</span>`;
+                    if (item.period) meta += `<span>Period: ${item.period}</span>`;
+                    description = item.description || '';
+                    
+                    if (item.details || item.discoveries) {
+                        detailsHtml = '<div class="card-details">';
+                        if (item.discoveries) {
+                            detailsHtml += `<p><strong>Key findings:</strong> ${item.discoveries.join(', ')}</p>`;
+                        }
+                        detailsHtml += '</div>';
+                    }
+                    citationsHtml = formatCitations(item.citations);
+                    break;
+
+                default:
+                    title = item.title || item.name || 'Untitled';
+                    if (item.year) meta += `<span>Year: ${item.year}</span>`;
+                    description = item.description || '';
+                    citationsHtml = formatCitations(item.citations);
+            }
+
+            return `
+                <div class="card" data-id="${item.id || ''}">
+                    <h3>${title}</h3>
+                    <div class="card-meta">${meta}</div>
+                    <p>${description}</p>
+                    ${detailsHtml}
+                    ${citationsHtml}
+                </div>
+            `;
+        }
+
+        function renderTimeline(container) {
+            const timelineData = archiveData.timeline || [];
+            
+            if (timelineData.length === 0) {
+                container.innerHTML = '<div class="empty-state">No timeline data available.</div>';
+                return;
+            }
+
+            let html = '<div class="timeline-container">';
+            html += '<div class="timeline-line"></div>';
+            
+            timelineData.forEach((item, index) => {
+                const title = item.event || item.title || 'Unknown Event';
+                const desc = item.description || '';
+                const citationsHtml = formatCitations(item.citations).replace('card-citations', 'timeline-citations');
+                
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-year">${item.year}</div>
+                            <div class="timeline-title">${title}</div>
+                            <div class="timeline-desc">${desc}</div>
+                            ${citationsHtml}
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Mobile Menu Functions
+        function initMenu() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const navClose = document.getElementById('nav-close');
+            const navOverlay = document.getElementById('nav-overlay');
+            
+            if (menuToggle) menuToggle.addEventListener('click', openMobileMenu);
+            if (navClose) navClose.addEventListener('click', closeMobileMenu);
+            if (navOverlay) navOverlay.addEventListener('click', closeMobileMenu);
+        }
+
+        function openMobileMenu() {
+            const nav = document.getElementById('main-nav');
+            const overlay = document.getElementById('nav-overlay');
+            nav.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            const nav = document.getElementById('main-nav');
+            const overlay = document.getElementById('nav-overlay');
+            nav.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // 3D Viewer Functions with GLB Support
+        function init3DViewer() {
+            const close3dBtn = document.getElementById('close-3d-modal');
+            if (close3dBtn) {
+                close3dBtn.addEventListener('click', close3DViewer);
+            }
+
+            const resetBtn = document.getElementById('reset-view');
+            const wireframeBtn = document.getElementById('toggle-wireframe');
+            const rotateBtn = document.getElementById('toggle-rotate');
+
+            if (resetBtn) resetBtn.addEventListener('click', resetView);
+            if (wireframeBtn) wireframeBtn.addEventListener('click', toggleWireframe);
+            if (rotateBtn) rotateBtn.addEventListener('click', toggleAutoRotate);
+
+            const modal = document.getElementById('model-3d-modal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) close3DViewer();
+                });
+            }
+        }
+
+        function open3DViewer() {
+            const modal = document.getElementById('model-3d-modal');
+            if (!modal) return;
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            if (!threeRenderer) {
+                setTimeout(() => initThreeJS(), 100);
+            } else {
+                animate();
+            }
+        }
+
+        function close3DViewer() {
+            const modal = document.getElementById('model-3d-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+            isAutoRotating = false;
+            updateRotateButton();
+        }
+
+        function initThreeJS() {
+            const container = document.getElementById('viewer-3d-container');
+            if (!container || typeof THREE === 'undefined') {
+                show3DError('Three.js library not loaded.');
+                return;
+            }
+
+            threeScene = new THREE.Scene();
+            threeScene.background = new THREE.Color(0x0a0a0a);
+            threeScene.fog = new THREE.Fog(0x0a0a0a, 10, 50);
+
+            const aspect = container.clientWidth / container.clientHeight;
+            threeCamera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            threeCamera.position.set(15, 10, 15);
+
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
+            threeRenderer.setPixelRatio(window.devicePixelRatio);
+            threeRenderer.shadowMap.enabled = true;
+            threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.insertBefore(threeRenderer.domElement, container.firstChild);
+
+            if (typeof THREE.OrbitControls !== 'undefined') {
+                threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+                threeControls.enableDamping = true;
+                threeControls.dampingFactor = 0.05;
+                threeControls.minDistance = 5;
+                threeControls.maxDistance = 50;
+                threeControls.maxPolarAngle = Math.PI / 2;
+            }
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            threeScene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            threeScene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0xb5a642, 0.5);
+            pointLight.position.set(-10, 10, -10);
+            threeScene.add(pointLight);
+
+            const gridHelper = new THREE.GridHelper(20, 20, 0xb5a642, 0x2a2a2a);
+            threeScene.add(gridHelper);
+
+            loadGLBModel();
+
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function loadGLBModel() {
+            const loadingEl = document.getElementById('viewer-loading');
+            const errorEl = document.getElementById('viewer-error');
+            
+            if (loadingEl) loadingEl.style.display = 'block';
+            if (errorEl) errorEl.classList.add('hidden');
+
+            // Build list of URLs to try
+            const modelUrls = [];
+            
+            // Primary: GitHub Pages
+            if (typeof GITHUB_PAGES_URL !== 'undefined' && GITHUB_PAGES_URL) {
+                modelUrls.push(`${GITHUB_PAGES_URL}/assets/models/observatory.glb`);
+            }
+            
+            // Fallback: Netlify (if configured)
+            if (typeof NETLIFY_URL !== 'undefined' && NETLIFY_URL) {
+                modelUrls.push(`${NETLIFY_URL}/observatory.glb`);
+            }
+            
+            // Fallback: Custom URL (if configured)
+            if (typeof CUSTOM_URL !== 'undefined' && CUSTOM_URL) {
+                modelUrls.push(`${CUSTOM_URL}/observatory.glb`);
+            }
+            
+            // Last resort: Raw GitHub (usually blocked by CORS but worth trying)
+            modelUrls.push('https://raw.githubusercontent.com/SWoWanders/Dominion-Observatory-Data/main/assets/models/observatory.glb');
+
+            if (modelUrls.length === 0) {
+                show3DError('No model URLs configured. Please check the CONFIGURATION section in the code.');
+                createPlaceholderModel();
+                return;
+            }
+
+            if (typeof THREE.GLTFLoader === 'undefined') {
+                show3DError('GLTFLoader not available.');
+                createPlaceholderModel();
+                return;
+            }
+
+            const loader = new THREE.GLTFLoader();
+            
+            // Try loading from each URL in sequence
+            tryLoadModel(loader, modelUrls, 0);
+        }
+
+        function tryLoadModel(loader, urls, index) {
+            if (index >= urls.length) {
+                console.error('All model URLs failed');
+                show3DError(
+                    'Could not load 3D model from any source.<br><br>' +
+                    '<strong>To fix this:</strong><br>' +
+                    '1. Enable GitHub Pages in your repository settings<br>' +
+                    '2. Wait 2-3 minutes for deployment<br>' +
+                    '3. Refresh this page<br><br>' +
+                    'Or use the placeholder model below.'
+                );
+                createPlaceholderModel();
+                return;
+            }
+
+            const url = urls[index];
+            console.log(`Attempting to load model from: ${url}`);
+
+            loader.load(
+                url,
+                (gltf) => {
+                    console.log(`Successfully loaded model from ${url}`);
+                    onModelLoaded(gltf);
+                },
+                (progress) => {
+                    const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                    const loadingEl = document.getElementById('viewer-loading');
+                    if (loadingEl) {
+                        loadingEl.textContent = `Loading 3D Model... ${percent}%`;
+                    }
+                },
+                (error) => {
+                    console.warn(`Failed to load from ${url}:`, error);
+                    // Try next URL
+                    tryLoadModel(loader, urls, index + 1);
+                }
+            );
+        }
+
+        function onModelLoaded(gltf) {
+            const loadingEl = document.getElementById('viewer-loading');
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            threeModel = gltf.scene;
+
+            const box = new THREE.Box3().setFromObject(threeModel);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 10 / maxDim;
+            threeModel.scale.setScalar(scale);
+
+            threeModel.position.sub(center.multiplyScalar(scale));
+            threeModel.position.y = size.y * scale / 2;
+
+            threeModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            threeScene.add(threeModel);
+
+            if (threeControls) {
+                threeControls.target.set(0, size.y * scale / 2, 0);
+                threeControls.update();
+            }
+        }
+
+        function createPlaceholderModel() {
+            const loadingEl = document.getElementById('viewer-loading');
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            const group = new THREE.Group();
+
+            const buildingGeometry = new THREE.BoxGeometry(6, 4, 4);
+            const buildingMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x8a7a32,
+                roughness: 0.7
+            });
+            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            building.position.y = 2;
+            building.castShadow = true;
+            building.receiveShadow = true;
+            group.add(building);
+
+            const domeGeometry = new THREE.SphereGeometry(2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const domeMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xb5a642,
+                metalness: 0.6,
+                roughness: 0.3
+            });
+            const dome = new THREE.Mesh(domeGeometry, domeMaterial);
+            dome.position.y = 4;
+            dome.castShadow = true;
+            group.add(dome);
+
+            const telescopeGeometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 16);
+            const telescopeMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
+            const telescope = new THREE.Mesh(telescopeGeometry, telescopeMaterial);
+            telescope.rotation.x = Math.PI / 4;
+            telescope.position.set(0, 5, 0);
+            group.add(telescope);
+
+            threeModel = group;
+            threeScene.add(threeModel);
+
+            const infoTitle = document.querySelector('.viewer-info h3');
+            const infoText = document.querySelector('.viewer-info p');
+            if (infoTitle) infoTitle.textContent = 'Observatory (Placeholder)';
+            if (infoText) infoText.textContent = 'GLB model not found. Displaying simplified representation. Enable GitHub Pages to serve the actual model.';
+        }
+
+        function show3DError(message) {
+            const loadingEl = document.getElementById('viewer-loading');
+            const errorEl = document.getElementById('viewer-error');
+            const errorMessageEl = document.getElementById('error-message');
+            
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (errorEl) errorEl.classList.remove('hidden');
+            if (errorMessageEl) errorMessageEl.innerHTML = message;
+        }
+
+        function retryLoadModel() {
+            if (threeRenderer) {
+                while(threeScene.children.length > 0){ 
+                    threeScene.remove(threeScene.children[0]); 
+                }
+                threeModel = null;
+            }
+            loadGLBModel();
+        }
+
+        function onWindowResize() {
+            if (!threeCamera || !threeRenderer) return;
+            
+            const container = document.getElementById('viewer-3d-container');
+            if (!container) return;
+
+            threeCamera.aspect = container.clientWidth / container.clientHeight;
+            threeCamera.updateProjectionMatrix();
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            if (!threeRenderer) return;
+            
+            requestAnimationFrame(animate);
+
+            if (isAutoRotating && threeModel) {
+                threeModel.rotation.y += 0.005;
+            }
+
+            if (threeControls) {
+                threeControls.update();
+            }
+
+            threeRenderer.render(threeScene, threeCamera);
+        }
+
+        function resetView() {
+            if (!threeCamera || !threeControls) return;
+            
+            threeCamera.position.set(15, 10, 15);
+            threeControls.target.set(0, 0, 0);
+            threeControls.update();
+            
+            if (threeModel) {
+                threeModel.rotation.set(0, 0, 0);
+            }
+        }
+
+        function toggleWireframe() {
+            if (!threeModel) return;
+            
+            isWireframe = !isWireframe;
+            threeModel.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    child.material.wireframe = isWireframe;
+                }
+            });
+            
+            const btn = document.getElementById('toggle-wireframe');
+            if (btn) btn.classList.toggle('active', isWireframe);
+        }
+
+        function toggleAutoRotate() {
+            isAutoRotating = !isAutoRotating;
+            updateRotateButton();
+        }
+
+        function updateRotateButton() {
+            const btn = document.getElementById('toggle-rotate');
+            if (btn) {
+                btn.classList.toggle('active', isAutoRotating);
+                btn.textContent = isAutoRotating ? 'Stop Rotate' : 'Auto Rotate';
+            }
+        }
+
+        // Modal Functions
+        function initModals() {
+            const essayModal = document.getElementById('essay-modal');
+            const outputModal = document.getElementById('output-modal');
+            const generateBtn = document.getElementById('generate-essay-btn');
+            const cancelBtn = document.getElementById('cancel-essay');
+            const confirmBtn = document.getElementById('confirm-essay');
+            const closeButtons = document.querySelectorAll('.modal-close');
+            const copyBtn = document.getElementById('copy-essay');
+            const saveBtn = document.getElementById('save-essay');
+            const printBtn = document.getElementById('print-btn');
+
+            if (generateBtn) {
+                generateBtn.addEventListener('click', () => {
+                    openModal(essayModal);
+                    loadTopics();
+                });
+            }
+
+            if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal(essayModal));
+            if (confirmBtn) confirmBtn.addEventListener('click', generateEssay);
+
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    closeModal(essayModal);
+                    closeModal(outputModal);
+                });
+            });
+
+            [essayModal, outputModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) closeModal(modal);
+                    });
+                }
+            });
+
+            if (copyBtn) copyBtn.addEventListener('click', copyEssay);
+            if (saveBtn) saveBtn.addEventListener('click', () => window.print());
+            if (printBtn) printBtn.addEventListener('click', () => window.print());
+        }
+
+        function openModal(modal) {
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modal) {
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function loadTopics() {
+            const topicGrid = document.getElementById('topic-grid');
+            const topics = [
+                'Buildings & Structures',
+                'Scientific Equipment',
+                'Personnel & Staff',
+                'Scientific Programs',
+                'Astronomical Discoveries',
+                'Time Service Operations',
+                'Seismographic Studies',
+                'Solar Research'
+            ];
+
+            topicGrid.innerHTML = topics.map(topic => `
+                <label class="topic-item">
+                    <input type="checkbox" value="${topic}">
+                    <span>${topic}</span>
+                </label>
+            `).join('');
+
+            topicGrid.querySelectorAll('.topic-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = item.querySelector('input');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    item.classList.toggle('selected', item.querySelector('input').checked);
+                });
+            });
+        }
+
+        function generateEssay() {
+            const checkboxes = document.querySelectorAll('#topic-grid input[type="checkbox"]:checked');
+            selectedTopics = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedTopics.length === 0) {
+                alert('Please select at least one topic.');
+                return;
+            }
+
+            const style = document.getElementById('essay-style')?.value || 'comprehensive';
+            const citation = document.getElementById('citation-format')?.value || 'chicago';
+            
+            const essayContent = generateEssayContent(selectedTopics, style, citation);
+            document.getElementById('essay-output').innerHTML = essayContent;
+            
+            closeModal(document.getElementById('essay-modal'));
+            openModal(document.getElementById('output-modal'));
+        }
+
+        function generateEssayContent(topics, style, citation) {
+            const date = new Date().toLocaleDateString();
+            let content = `
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h1 style="font-family: Cinzel, serif; color: #1a1a1a; margin-bottom: 0.5rem; font-size: 1.5rem;">
+                        The Dominion Observatory (Ottawa)
+                    </h1>
+                    <p style="color: #666; font-style: italic; text-transform: capitalize;">${style} Analysis</p>
+                </div>
+            `;
+
+            content += `<p style="text-indent: 2rem; margin-bottom: 1rem;">`;
+            content += `The Dominion Observatory, established in Ottawa in 1905, represents one of Canada's most significant contributions to astronomical science. `;
+            content += `This essay examines ${topics.join(', ')} within the context of the Observatory's operational history from 1905 to 1970.`;
+            content += `</p>`;
+
+            topics.forEach(topic => {
+                content += `<h2 style="font-family: Cinzel, serif; color: #1a1a1a; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid #b5a642; padding-bottom: 0.25rem; font-size: 1.2rem;">${topic}</h2>`;
+                content += `<p style="text-indent: 2rem; margin-bottom: 1rem;">`;
+                content += `The ${topic.toLowerCase()} played a crucial role in the Observatory's mission to advance Canadian astronomical research `;
+                content += `and provide accurate time service to the nation. Detailed archival research reveals significant contributions to our understanding `;
+                content += `of celestial mechanics, atmospheric phenomena, and precision timekeeping that positioned Canada as a leader in scientific research.`;
+                content += `</p>`;
+            });
+
+            content += `<div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #1a1a1a;">`;
+            content += `<h3 style="font-family: Cinzel, serif; color: #1a1a1a; margin-bottom: 1rem;">References</h3>`;
+            
+            const refs = [
+                'Jarrell, Richard A. <i>The Cold Light of Dawn: A History of Canadian Astronomy</i>. Toronto: University of Toronto Press, 1988.',
+                'Canada Department of Mines and Resources. <i>The Dominion Observatory</i>. Ottawa: King\'s Printer, 1930.',
+                'King, W.F. "The Work of the Dominion Observatory." <i>Journal of the Royal Astronomical Society of Canada</i> 1 (1907): 3-12.'
+            ];
+
+            refs.forEach(ref => {
+                content += `<p style="margin-left: 2rem; text-indent: -2rem; margin-bottom: 0.75rem; font-size: 0.9rem;">${ref}</p>`;
+            });
+            
+            content += `</div>`;
+            content += `<p style="text-align: right; color: #666; font-size: 0.8rem; margin-top: 2rem;">Generated: ${date}</p>`;
+
+            return content;
+        }
+
+        function copyEssay() {
+            const essayOutput = document.getElementById('essay-output');
+            if (!essayOutput) return;
+
+            const text = essayOutput.innerText;
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Essay copied to clipboard!');
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('Essay copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy. Please select and copy manually.');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function initScrollTop() {
+            const scrollBtn = document.getElementById('scroll-top');
+            const contentArea = document.getElementById('content-area');
+            
+            if (!scrollBtn || !contentArea) return;
+
+            contentArea.addEventListener('scroll', () => {
+                if (contentArea.scrollTop > 300) {
+                    scrollBtn.classList.add('visible');
+                } else {
+                    scrollBtn.classList.remove('visible');
+                }
+            });
+
+            scrollBtn.addEventListener('click', () => {
+                contentArea.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        function initSearch() {
+            const searchBtn = document.getElementById('header-search-btn');
+            if (!searchBtn) return;
+
+            searchBtn.addEventListener('click', () => {
+                const term = prompt('Search the archive:');
+                if (!term) return;
+
+                const results = searchArchive(term);
+                displaySearchResults(results, term);
+            });
+        }
+
+        function searchArchive(term) {
+            const lowerTerm = term.toLowerCase();
+            const results = [];
+
+            Object.keys(archiveData).forEach(category => {
+                if (!Array.isArray(archiveData[category])) return;
+                archiveData[category].forEach(item => {
+                    let text = '';
+                    // Build search text based on item structure
+                    if (item.name) text += item.name + ' ';
+                    if (item.title) text += item.title + ' ';
+                    if (item.description) text += item.description + ' ';
+                    if (item.purpose) text += item.purpose + ' ';
+                    if (item.event) text += item.event + ' ';
+                    
+                    if (text.toLowerCase().includes(lowerTerm)) {
+                        results.push({ ...item, category });
+                    }
+                });
+            });
+
+            return results;
+        }
+
+        function displaySearchResults(results, term) {
+            const container = document.getElementById('cards-container');
+            const currentCategoryEl = document.getElementById('current-category');
+            
+            if (currentCategoryEl) {
+                currentCategoryEl.textContent = `Search: "${term}"`;
+            }
+
+            if (results.length === 0) {
+                container.innerHTML = `<div class="empty-state">No results found for "${term}"</div>`;
+                return;
+            }
+
+            container.innerHTML = results.map(item => createCard(item, item.category)).join('');
+        }
+
+        // Wait for DOM and external scripts to load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            // Small delay to ensure external script has executed
+            setTimeout(init, 100);
+        }
+    </script>
+</body>
+  </html>
