@@ -1,0 +1,19 @@
+[
+  {
+    "id": "post-2025-01-15-nhsc",
+    "type": "news",
+    "title": "Dominion Observatory designated a National Historic Site of Canada",
+    "body": "On 15 January 2025, the Government of Canada publicly announced that the Dominion Observatory complex in Ottawa has been designated a National Historic Site of Canada, following a 2023 decision by the Historic Sites and Monuments Board of Canada.\n\nThe designation recognises 120 years of Canadian astronomical, timekeeping, and geophysical heritage on the grounds of the Central Experimental Farm.",
+    "imageUrl": "DOPC_Banner.png",
+    "author": "The DOPC",
+    "date": "2025-01-15"
+  },
+  {
+    "id": "post-welcome",
+    "type": "news",
+    "title": "Welcome to the Dominion Observatory Archive",
+    "body": "This site documents the Dominion Observatory in Ottawa \u2014 both the federal scientific institution that operated from 1905 to 1970 and the heritage building complex that has stood since 1905.\n\nUse the menu to explore buildings, equipment, personnel, scientific programs, discoveries, and the full timeline. Members of the Dominion Observatory Preservation Committee can sign in via the lock icon in the header to post news and updates.",
+    "author": "The Archive",
+    "date": "2025-01-01"
+  }
+]
