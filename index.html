@@ -3808,7 +3808,9 @@
 
         function onModelLoaded(gltf) {
             const loadingEl = document.getElementById('viewer-loading');
+            const errorEl = document.getElementById('viewer-error');
             if (loadingEl) loadingEl.style.display = 'none';
+            if (errorEl) errorEl.classList.add('hidden');
 
             threeModel = gltf.scene;
 
