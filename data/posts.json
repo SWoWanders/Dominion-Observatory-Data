@@ -1,5 +1,13 @@
 [
   {
+    "id": "post-1780436169075",
+    "date": "2026-06-02",
+    "title": "test post",
+    "body": "test post\n\ntest post",
+    "author": "DOPC",
+    "type": "news"
+  },
+  {
     "id": "post-2025-01-15-nhsc",
     "type": "news",
     "title": "Dominion Observatory designated a National Historic Site of Canada",
@@ -12,7 +20,7 @@
     "id": "post-welcome",
     "type": "news",
     "title": "Welcome to the Dominion Observatory Archive",
-    "body": "This site documents the Dominion Observatory in Ottawa \u2014 both the federal scientific institution that operated from 1905 to 1970 and the heritage building complex that has stood since 1905.\n\nUse the menu to explore buildings, equipment, personnel, scientific programs, discoveries, and the full timeline. Members of the Dominion Observatory Preservation Committee can sign in via the lock icon in the header to post news and updates.",
+    "body": "This site documents the Dominion Observatory in Ottawa ? both the federal scientific institution that operated from 1905 to 1970 and the heritage building complex that has stood since 1905.\n\nUse the menu to explore buildings, equipment, personnel, scientific programs, discoveries, and the full timeline. Members of the Dominion Observatory Preservation Committee can sign in via the lock icon in the header to post news and updates.",
     "author": "The Archive",
     "date": "2025-01-01"
   }
