@@ -1,22 +1,5 @@
 [
   {
-    "id": "post-1780532640494",
-    "date": "2026-06-03",
-    "title": "test 2",
-    "body": "test 2",
-    "author": "DOPC",
-    "type": "image",
-    "imageUrl": "assets/news-images/post-1780532640494.jpg"
-  },
-  {
-    "id": "post-1780532355427",
-    "date": "2026-06-03",
-    "title": "test post",
-    "body": "test post\ntest post",
-    "author": "DOPC",
-    "type": "news"
-  },
-  {
     "id": "post-2025-01-15-nhsc",
     "type": "news",
     "title": "Dominion Observatory designated a National Historic Site of Canada",
