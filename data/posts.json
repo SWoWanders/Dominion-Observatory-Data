@@ -1,5 +1,14 @@
 [
   {
+    "id": "post-1780532640494",
+    "date": "2026-06-03",
+    "title": "test 2",
+    "body": "test 2",
+    "author": "DOPC",
+    "type": "image",
+    "imageUrl": "assets/news-images/post-1780532640494.jpg"
+  },
+  {
     "id": "post-1780532355427",
     "date": "2026-06-03",
     "title": "test post",
