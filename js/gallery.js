@@ -22,8 +22,21 @@
 //       than 95 years before publication for any item
 //       first published before 1978 (US safe-harbour).
 //
+//   (d) Openly licensed, shareable images (policy extended
+//       2026-10-24): CC0, CC BY, CC BY-SA (any version) and
+//       the Open Government Licence - Ontario (OGL-ON). These
+//       are accepted ONLY with the licence's required
+//       attribution in the `attribution` field and a
+//       `licenseUrl`. CC BY-SA images must note the
+//       share-alike condition. NOT accepted: all-rights-
+//       reserved images, CC NC / ND licences, Crown or
+//       third-party copyright without a stated licence,
+//       and anything whose rights are unknown.
+//
 // HOW TO ADD MORE IMAGES
 // ----------------------
+// 0. Put the image file in assets/gallery/ (see the README
+//    there) and set imageUrl to "assets/gallery/<id>.jpg".
 // 1. Open the source archive's catalogue or Commons file
 //    page in a browser.
 // 2. Note the license tag or copyright statement.
@@ -43,8 +56,9 @@
 // imageUrl      : direct link to image content (may be empty
 //                 if the source archive does not expose one)
 // license       : "PD-old", "PD-Canada-Crown", "PD-Canada-Expired",
-//                 "CC-BY-SA-4.0", "CC-BY-SA-3.0", "CC-BY-4.0",
-//                 "CC0", "PD-US-expired"
+//                 "CC-BY-SA-4.0", "CC-BY-SA-3.0", "CC-BY-SA-2.0",
+//                 "CC-BY-4.0", "CC-BY-3.0", "CC-BY-2.0",
+//                 "CC0", "OGL-ON", "PD-US-expired"
 // licenseUrl    : link to license text
 // attribution   : exact required attribution string ("" if none)
 // category      : one of "buildings", "people", "instruments",
