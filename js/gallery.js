@@ -24,7 +24,10 @@
 //
 //   (d) Openly licensed, shareable images (policy extended
 //       2026-10-24): CC0, CC BY, CC BY-SA (any version) and
-//       the Open Government Licence - Ontario (OGL-ON). These
+//       the Open Government Licence - Ontario (OGL-ON), plus
+//       CC BY-NC (non-commercial) while this site stays
+//       non-commercial (no ads, sponsors, paywalls or paid
+//       links). These
 //       are accepted ONLY with the licence's required
 //       attribution in the `attribution` field and a
 //       `licenseUrl`. CC BY-SA images must note the
@@ -58,7 +61,7 @@
 // license       : "PD-old", "PD-Canada-Crown", "PD-Canada-Expired",
 //                 "CC-BY-SA-4.0", "CC-BY-SA-3.0", "CC-BY-SA-2.0",
 //                 "CC-BY-4.0", "CC-BY-3.0", "CC-BY-2.0",
-//                 "CC0", "OGL-ON", "PD-US-expired"
+//                 "CC-BY-NC-4.0", "CC0", "OGL-ON", "PD-US-expired"
 // licenseUrl    : link to license text
 // attribution   : exact required attribution string ("" if none)
 // category      : one of "buildings", "people", "instruments",
@@ -67,6 +70,16 @@
 // ============================================
 
 const GalleryDatabase = {
+    // Download behaviour is chosen from each image's `license`:
+    //   PD*, CC0           -> free download
+    //   CC-BY*, CC-BY-SA*, OGL-ON -> download after showing the required credit
+    //   CC-BY-NC*          -> ncDownloads: 'notice'   = download after a non-commercial notice
+    //                         ncDownloads: 'viewOnly' = no download button
+    //   anything else      -> view only
+    // NOTE: "view only" hides the button and discourages saving; it cannot stop
+    // a determined visitor from saving or screenshotting an image.
+    settings: { ncDownloads: 'notice' },
+
     images: [
         // ------------------------------------------------------------
         // EXTERIOR PHOTOGRAPHS (pre-1929 — PD worldwide)

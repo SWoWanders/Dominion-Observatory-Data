@@ -2044,6 +2044,31 @@
             transition: opacity var(--transition-medium), visibility var(--transition-medium);
         }
         .gallery-lightbox.open { opacity: 1; visibility: visible; }
+        /* ---- Rights badges and download panel ---- */
+        .gallery-card-meta .meta-pill.rights-free   { border-color: var(--patina-dark); color: var(--patina-light); }
+        .gallery-card-meta .meta-pill.rights-credit { border-color: var(--brass-dark); color: var(--brass); }
+        .gallery-card-meta .meta-pill.rights-nc     { border-color: #b9824a; color: #e0a870; }
+        .gallery-card-meta .meta-pill.rights-view   { border-color: #8a8a8a; color: #b5b5b5; }
+        .gallery-lightbox-image img.no-save { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        .gallery-dl-block { margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--obsidian-lighter); }
+        .gallery-rights-badge { display: inline-block; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid var(--brass-dark); color: var(--brass); border-radius: 2px; }
+        .gallery-rights-badge.rights-free { border-color: var(--patina-dark); color: var(--patina-light); }
+        .gallery-rights-badge.rights-nc { border-color: #b9824a; color: #e0a870; }
+        .gallery-rights-badge.rights-view { border-color: #8a8a8a; color: #b5b5b5; }
+        .gallery-dl-open { display: block; margin-top: 0.7rem; padding: 0.55rem 0.9rem; background: transparent; border: 1px solid var(--brass); color: var(--brass); font: inherit; cursor: pointer; border-radius: 2px; }
+        .gallery-dl-open:hover { background: rgba(200,160,80,0.12); }
+        .gallery-dl-note { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--parchment-dark); }
+        .gallery-dl-overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); padding: 1rem; }
+        .gallery-dl-panel { max-width: 30rem; width: 100%; max-height: 90vh; overflow: auto; background: var(--obsidian); border: 1px solid var(--brass); padding: 1.2rem; border-radius: 4px; color: var(--parchment); }
+        .gallery-dl-panel h3 { margin: 0 0 0.6rem; color: var(--brass); }
+        .gallery-dl-panel p { margin: 0.5rem 0; font-size: 0.9rem; }
+        .gallery-dl-credit { margin: 0.7rem 0; padding: 0.6rem 0.7rem; border: 1px dashed var(--brass-dark); font-size: 0.85rem; user-select: all; word-break: break-word; }
+        .gallery-dl-license { font-size: 0.8rem; }
+        .gallery-dl-license a { color: var(--brass); }
+        .gallery-dl-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
+        .gallery-dl-btn { font: inherit; padding: 0.5rem 0.8rem; cursor: pointer; border-radius: 2px; border: 1px solid var(--brass); background: transparent; color: var(--brass); }
+        .gallery-dl-btn.primary { background: var(--brass); color: var(--obsidian); }
+
         .gallery-lightbox-content {
             background: var(--obsidian-light);
             border: 1px solid var(--brass-dark);
@@ -4931,6 +4956,7 @@
                 <strong>About this gallery:</strong> A curated collection of public-domain
                 and openly-licensed images related to the Dominion Observatory. Tap any
                 thumbnail for a larger view, full caption, and source information.
+                Each image shows how it may be used: free to use, credit required, non-commercial only, or view only.
             </div>`;
 
             container.innerHTML = `
@@ -4953,6 +4979,67 @@
                     const idx = parseInt(card.dataset.index, 10);
                     openGalleryLightbox(idx);
                 });
+            });
+        }
+
+        // ---- Rights tiers: decide what a visitor may do with each image ----
+        function galleryRightsTier(img) {
+            const lic = String(img.license || '');
+            const nc = (typeof GalleryDatabase !== 'undefined' && GalleryDatabase.settings && GalleryDatabase.settings.ncDownloads) || 'notice';
+            if (/^PD/i.test(lic) || lic === 'CC0') return { key: 'free', label: 'Free to use', download: 'direct' };
+            if (/^CC-BY-NC/i.test(lic)) return { key: 'nc', label: 'Non-commercial only', download: nc === 'viewOnly' ? 'none' : 'notice' };
+            if (/^CC-BY-SA/i.test(lic)) return { key: 'credit', label: 'Credit required + share-alike', download: 'credit', shareAlike: true };
+            if (/^CC-BY/i.test(lic) || lic === 'OGL-ON') return { key: 'credit', label: 'Credit required', download: 'credit' };
+            return { key: 'view', label: 'View only', download: 'none' };
+        }
+
+        function galleryDownloadFilename(img) {
+            const ext = (String(img.imageUrl || '').match(/\.(jpe?g|png|gif|webp)$/i) || ['', 'jpg'])[1].toLowerCase();
+            const slug = String(img.title || 'image').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+            return `${img.id || 'gallery'}-${slug}.${ext}`;
+        }
+
+        function galleryTriggerDownload(img) {
+            const a = document.createElement('a');
+            a.href = img.imageUrl;
+            a.download = galleryDownloadFilename(img);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function galleryDownloadPanel(img, tier) {
+            const lb = document.getElementById('gallery-lightbox');
+            if (!lb) return;
+            lb.querySelector('.gallery-dl-overlay')?.remove();
+            const credit = img.attribution || '';
+            const rules = [];
+            if (tier.key === 'credit') rules.push('This image requires credit. Please include the credit line below wherever you use it.');
+            if (tier.shareAlike) rules.push('Share-alike: if you adapt this image, the result must be shared under the same licence.');
+            if (tier.key === 'nc') rules.push('Non-commercial use only. Any commercial use needs permission from the rights holder.');
+            const overlay = document.createElement('div');
+            overlay.className = 'gallery-dl-overlay';
+            overlay.innerHTML = `
+                <div class="gallery-dl-panel" role="dialog" aria-label="Before you download">
+                    <h3>Before you download</h3>
+                    ${rules.map(r => `<p>${escapeHtml(r)}</p>`).join('')}
+                    <div class="gallery-dl-credit" id="gallery-dl-credit">${escapeHtml(credit)}</div>
+                    <p class="gallery-dl-license">Licence: ${img.licenseUrl ? `<a href="${escapeAttr(img.licenseUrl)}" target="_blank" rel="noopener">${escapeHtml(img.license || '')}</a>` : escapeHtml(img.license || '')}</p>
+                    <div class="gallery-dl-actions">
+                        <button type="button" class="gallery-dl-btn secondary" data-act="copy">Copy credit</button>
+                        <button type="button" class="gallery-dl-btn primary" data-act="go">I will credit this &mdash; download</button>
+                        <button type="button" class="gallery-dl-btn secondary" data-act="cancel">Cancel</button>
+                    </div>
+                </div>`;
+            lb.querySelector('.gallery-lightbox-content').appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                const act = e.target.dataset && e.target.dataset.act;
+                if (e.target === overlay || act === 'cancel') { overlay.remove(); return; }
+                if (act === 'copy') {
+                    const done = () => { e.target.textContent = 'Copied'; };
+                    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(credit).then(done, () => {});
+                    else { const r = document.createRange(); r.selectNodeContents(document.getElementById('gallery-dl-credit')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done(); }
+                } else if (act === 'go') { galleryTriggerDownload(img); overlay.remove(); }
             });
         }
 
@@ -4983,6 +5070,7 @@
                         <div class="gallery-card-meta">
                             ${escDate ? `<span class="meta-pill">${escDate}</span>` : ''}
                             ${license ? `<span class="meta-pill ${licenseClass}">${escapeHtml(license)}</span>` : ''}
+                            <span class="meta-pill rights-${galleryRightsTier(img).key}">${escapeHtml(galleryRightsTier(img).label)}</span>
                         </div>
                         <p class="gallery-card-caption">${escCaption}</p>
                         ${escAttribution ? `<div class="gallery-card-attribution">${escAttribution}</div>` : ''}
@@ -5043,6 +5131,7 @@
             const escAttribution = escapeHtml(img.attribution || '');
             const escNotes = escapeHtml(img.notes || '');
             const total = galleryFilteredImages.length;
+            const tier = galleryRightsTier(img);
 
             const imageBlock = img.imageUrl
                 ? `<img src="${escapeAttr(img.imageUrl)}" alt="${escTitle}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'image-placeholder\\'>Image not available inline. Click <a href=\\'${escapeAttr(img.sourceUrl || '#')}\\' target=\\'_blank\\' rel=\\'noopener\\' style=\\'color:var(--brass-light)\\'>here to view at ${escapeAttr(img.sourceArchive || 'source')}</a>.</div>';">`
@@ -5087,10 +5176,27 @@
                             ${escNotes ? `<dt>Notes</dt><dd>${escNotes}</dd>` : ''}
                             ${citationsHtml}
                         </dl>
+                        <div class="gallery-dl-block rights-${tier.key}">
+                            <span class="gallery-rights-badge rights-${tier.key}">${escapeHtml(tier.label)}</span>
+                            ${tier.download === 'none'
+                                ? `<p class="gallery-dl-note">View only: this image is not offered for download from this site. See the source link for the rights holder's terms.</p>`
+                                : `<button type="button" class="gallery-dl-open" data-dl="${tier.download}">${tier.download === 'direct' ? 'Download image' : 'Download (credit required)'}</button>
+                                   ${tier.download === 'notice' ? '<p class="gallery-dl-note">Non-commercial use only.</p>' : ''}`}
+                        </div>
                         ${total > 1 ? `<div style="text-align:right; color:var(--parchment-dark); font-size:0.75rem; margin-top:auto;">${galleryLightboxIndex + 1} / ${total}</div>` : ''}
                     </div>
                 </div>
             `;
+
+            // View-only images: discourage saving (cannot fully prevent it)
+            if (tier.download === 'none') {
+                const im = lb.querySelector('.gallery-lightbox-image img');
+                if (im) { im.draggable = false; im.addEventListener('contextmenu', e => e.preventDefault()); im.classList.add('no-save'); }
+            }
+            lb.querySelector('.gallery-dl-open')?.addEventListener('click', () => {
+                if (tier.download === 'direct') galleryTriggerDownload(img);
+                else galleryDownloadPanel(img, tier);
+            });
 
             // Wire controls
             lb.querySelector('.gallery-lightbox-close')?.addEventListener('click', closeGalleryLightbox);
