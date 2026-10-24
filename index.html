@@ -2044,6 +2044,15 @@
             transition: opacity var(--transition-medium), visibility var(--transition-medium);
         }
         .gallery-lightbox.open { opacity: 1; visibility: visible; }
+        /* ---- Photos inside entries ---- */
+        .entry-images { margin-top: 1rem; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+        .entry-figure { margin: 0; }
+        .entry-figure-btn { display: block; width: 100%; padding: 0; border: 1px solid var(--obsidian-lighter); background: #000; cursor: zoom-in; border-radius: 2px; }
+        .entry-figure-btn img { display: block; width: 100%; height: auto; max-height: 18rem; object-fit: contain; }
+        .entry-figure figcaption { margin-top: 0.4rem; font-size: 0.8rem; line-height: 1.4; color: var(--parchment-dark); }
+        .entry-figure-caption { display: block; }
+        .entry-figure-credit { display: block; margin-top: 0.25rem; font-size: 0.72rem; opacity: 0.8; }
+
         /* ---- Rights badges and download panel ---- */
         .gallery-card-meta .meta-pill.rights-free   { border-color: var(--patina-dark); color: var(--patina-light); }
         .gallery-card-meta .meta-pill.rights-credit { border-color: var(--brass-dark); color: var(--brass); }
@@ -3246,6 +3255,36 @@
             return 'status-unconfirmed';
         }
 
+        function entryImagesHtml(category, id) {
+            if (typeof GalleryDatabase === 'undefined' || !GalleryDatabase.entryImages) return '';
+            const ids = ((GalleryDatabase.entryImages[category] || {})[id]) || [];
+            const imgs = ids.map(i => GalleryDatabase.images.find(x => x.id === i)).filter(x => x && x.imageUrl);
+            if (!imgs.length) return '';
+            return '<div class="entry-images">' + imgs.map(img => `
+                <figure class="entry-figure">
+                    <button type="button" class="entry-figure-btn" data-gallery-id="${escapeAttr(img.id)}" aria-label="Enlarge: ${escapeAttr(img.title || '')}">
+                        <img src="${escapeAttr(img.imageUrl)}" alt="${escapeAttr(img.title || '')}" loading="lazy">
+                    </button>
+                    <figcaption>
+                        <span class="entry-figure-caption">${escapeHtml(img.caption || img.title || '')}</span>
+                        <span class="entry-figure-credit">${escapeHtml(img.attribution || '')}</span>
+                    </figcaption>
+                </figure>`).join('') + '</div>';
+        }
+
+        let entryLightboxSaved = null;
+        function openEntryImage(galleryId) {
+            const img = GalleryDatabase.images.find(x => x.id === galleryId);
+            if (!img) return;
+            entryLightboxSaved = galleryFilteredImages;
+            galleryFilteredImages = [img];
+            openGalleryLightbox(0);
+        }
+        document.addEventListener('click', (e) => {
+            const b = e.target.closest && e.target.closest('.entry-figure-btn');
+            if (b) openEntryImage(b.getAttribute('data-gallery-id'));
+        });
+
         function createCard(item, category) {
             let meta = '';
             let title = '';
@@ -3622,6 +3661,7 @@
                     <div class="card-meta">${meta}</div>
                     <p>${description}</p>
                     ${detailsHtml}
+                    ${entryImagesHtml(category, item.id)}
                     ${citationsHtml}
                     ${factsheetBtn}
                 </div>
@@ -5108,6 +5148,7 @@
             lb.classList.remove('open');
             document.body.style.overflow = '';
             document.removeEventListener('keydown', galleryKeyHandler);
+            if (entryLightboxSaved) { galleryFilteredImages = entryLightboxSaved; entryLightboxSaved = null; }
             setTimeout(() => { lb.remove(); }, 300);
         }
 

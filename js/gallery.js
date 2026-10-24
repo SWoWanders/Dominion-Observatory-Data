@@ -78,6 +78,28 @@ const GalleryDatabase = {
     //   anything else      -> view only
     // NOTE: "view only" hides the button and discourages saving; it cannot stop
     // a determined visitor from saving or screenshotting an image.
+    // Which gallery images illustrate which site entries (category -> entry id -> gallery ids).
+    // Only photographs that clearly show the entry's subject are listed; entries
+    // with no suitable photograph are left without one.
+    entryImages: {
+        personnel: {
+            "william-frederick-king": ["GAL-005"],
+            "robert-meldrum-stewart": ["GAL-016"],
+            "ralph-delury": ["GAL-017"]
+        },
+        equipment: {
+            "coelostat": ["GAL-017"]
+        },
+        buildings: {
+            "main-observatory": ["GAL-014", "GAL-007", "GAL-008", "GAL-013"],
+            "photo-equatorial": ["GAL-041", "GAL-030", "GAL-028"],
+            "south-azimuth": ["GAL-042", "GAL-031"]
+        },
+        programs: {
+            "geomagnetism": ["GAL-023"]
+        }
+    },
+
     settings: { ncDownloads: 'notice' },
 
     images: [
